@@ -1,0 +1,106 @@
+- Introduction
+- Comparing Software Patterns with Prompt Patterns
+  - Overview of Software Patterns
+  - Overview of Prompt Patterns
+  - Evaluating Means for Defining a Prompt Pattern's Structure and Ideas
+  - A Way Forward: Fundamental Contextual Statements
+- A Catalog of Prompt Patterns for Conversational LLMs
+  - Summary of the Prompt Pattern Catalog
+  - The Meta Language Creation Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Output Automater Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Flipped Interaction Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Persona Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Question Refinement Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Alternative Approaches Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Cognitive Verifier Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Fact Check List Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Template Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Infinite Generation Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Visualization Generator Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Game Play Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Reflection Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Refusal Breaker Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Context Manager Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+  - The Recipe Pattern
+    - Intent and Context
+    - Motivation
+    - Structure and Key Ideas
+    - Example Implementation
+    - Consequences
+- Related Work
+- Concluding Remarks
