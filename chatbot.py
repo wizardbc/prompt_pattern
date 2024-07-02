@@ -96,7 +96,8 @@ if "api_key" not in st.session_state:
     st.session_state.api_key = st.secrets["GOOGLE_API_KEY"]
   except:
     st.session_state.api_key = ''
-    st.warning("Your Google API Key is not provided in `.streamlit/secrets.toml`, but you can input one in the sidebar for temporary use.")
+    with col2:
+      st.warning("Your Google API Key is not provided in `.streamlit/secrets.toml`, but you can input one in the sidebar for temporary use.")
 
 # Sidebar for parameters
 with st.sidebar:
