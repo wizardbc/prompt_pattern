@@ -62,7 +62,7 @@ Args:
   )["embedding"])
   top_n = int(top_n)
   df["similarity"] = df.embedding.apply(lambda x: np.dot(x, query_embedding))
-  return df[df.similarity >= s].sort_values("similarity", ascending=False).head(top_n)[['text', 'similarity']].to_json()
+  return df[df.similarity >= s].sort_values("similarity", ascending=False).head(top_n)[['section', 'subsection', 'subsubsection', 'text', 'similarity']].to_json()
 
 # stream wrapper
 # def gemini_stream_text(response):
@@ -139,13 +139,14 @@ safety_settings={
   'danger':'block_none'
 }
 
-system_instruction=f"""You are an experienced prompt engineer.
+system_instruction=f"""You are a retriever engine.
 You can retrieve the contents of the paper titled 'A Prompt Pattern Catalog to Enhance Prompt Engineering with ChatGPT'.
 
-If you are not sure, then just say you don't know; never make up a story.
-When you use the function `search_from_section_names`, first, you try fill all the three `[section, subsection, subsubsection]` names to get one or two chunks.
-If you think we need more chunks, then ask the user want to get more.
+Even if you are pretty sure, you, first, try to retrieve the paper's content.
+If you are failed to retrieve, then just say you cannot find; never use your prior knowledge.
+When you use the function `search_from_section_names`, first, you try fill all the three `[section, subsection, subsubsection]` names to get a chunk; but `subsection` or `subsubsection` can be empty string '' anyway.
 If you cannot determine which section or (sub)subsection should be chosen, use the function `search_from_text` which is using cosine similarity of the query and the document body text.
+If you think we need more chunks, then ask the user want to get more.
 
 You have to use Korean (한국어) if the user asks in Korean (한국어).
 Otherwise you must use English.
@@ -202,7 +203,8 @@ with col2:
       else:
         if fr:=part.function_response:
           with messages.chat_message('retriever', avatar="📜"):
-            st.dataframe(pd.read_json(StringIO(fr.response["result"]))[['section', 'subsection', 'subsubsection']])
+            retriever_df = pd.read_json(StringIO(fr.response["result"]))
+            st.dataframe(retriever_df.loc[:, (retriever_df.columns != "text")])
 
   # chat input
   if prompt := st.chat_input("Ask me anything...", disabled=False if st.session_state.api_key else True):
