@@ -171,38 +171,38 @@ with st.sidebar:
     st.button("Clear", on_click=chat_session._history.clear, use_container_width=True)
 
 with col2:
+  messages = st.container()
   # display system instruction
   if system_checkbox:
-    with st.chat_message("system"):
+    with messages.chat_message("system"):
       st.write(system_instruction)
 
   # display messages in history
   for content in st.session_state.chat_session.history:
     for part in content.parts:
       if text:=part.text:
-        with st.chat_message('human' if content.role == 'user' else 'ai'):
+        with messages.chat_message('human' if content.role == 'user' else 'ai'):
           st.write(text)
       if f_call_checkbox:
         if fc:=part.function_call:
-          with st.chat_message('ai'):
+          with messages.chat_message('ai'):
             st.write(f"Function Call\n- name: {fc.name}\n- args\n{kwargs2mkdn(4, **fc.args)}")
         if fr:=part.function_response:
-          with st.chat_message('human'):
+          with messages.chat_message('human'):
             st.write(f"Function Response\n- name: {fr.name}\n- response\n  - `result`")
             st.json(fr.response["result"])
       else:
         if fr:=part.function_response:
-          with st.chat_message('ai'):
+          with messages.chat_message('ai'):
             st.dataframe(pd.read_json(StringIO(fr.response["result"]))[['section', 'subsection', 'subsubsection']])
 
   # chat input
-  if prompt := st.chat_input("What is up?"):
-    with st.chat_message('human'):
+  if prompt := st.chat_input("Ask me anything...", disabled=False if st.session_state.api_key else True):
+    with messages.chat_message('human'):
       st.write(prompt)
-    with st.chat_message('ai'):
+    with messages.chat_message('ai'):
       with st.spinner("Generating..."):
         # response = chat_session.send_message(prompt, stream=True)
         response = chat_session.send_message(prompt)
       # st.write_stream(gemini_stream_text(response))
-      st.write(response.parts[0].text)
     st.rerun()
