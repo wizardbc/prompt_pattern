@@ -34,11 +34,18 @@ Args:
   query = [name if name else '' for name in list(query)]
   query += ['']*(3-len(query))
   df = df_csv.copy()
-  return df[
+  res_df = df[
     (df['section'] == query[0])
     & (df['subsection'] == query[1])
     & (df['subsubsection'] == query[2])
-  ][['section', 'subsection', 'subsubsection', 'text']].to_json()
+  ]
+  if len(res_df)==0:
+    res_df = df[
+      df['section'].str.contains(query[0])
+      & df['subsection'].str.contains(query[1])
+      & df['subsubsection'].str.contains(query[2])
+    ]
+  return res_df[['section', 'subsection', 'subsubsection', 'text']].to_json()
 
 def search_from_text(query:str, top_n:int=5, s:float=.0):
   """Retrieves LaTeX chunks from the paper "A Prompt Pattern Catalog to Enhance Prompt Engineering with ChatGPT" using cosine similarity of text.
