@@ -58,7 +58,7 @@ def kwargs2mkdn(_indent:int=0, **kwargs):
   return '\n'.join(chunk)
 
 
-st.title("💬 Chatbot")
+st.title("💬 Chatbot with Paper")
 st.caption("🚀 A Prompt Pattern Catalog to Enhance Prompt Engineering with Gemini 1.5 Flash")
 st.write("https://arxiv.org/abs/2302.11382")
 
