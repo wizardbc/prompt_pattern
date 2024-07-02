@@ -194,7 +194,7 @@ with col2:
             st.json(fr.response["result"])
       else:
         if fr:=part.function_response:
-          with messages.chat_message('ai'):
+          with messages.chat_message('retriever', avatar=":scroll:"):
             st.dataframe(pd.read_json(StringIO(fr.response["result"]))[['section', 'subsection', 'subsubsection']])
 
   # chat input
