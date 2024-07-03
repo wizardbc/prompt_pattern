@@ -85,17 +85,30 @@ with col1:
   with st.container(border=True):
     st.write("논문의 내용을 가져와 대답해 줍니다.")
     st.write("내용을 가져오기위해 두가지 함수를 사용합니다.\n- `search_from_section_names`: 질문에 대한 대답이 있을 것으로 예상되는 논문의 섹션이름을 추출하여 해당 섹션의 내용을 가져 옵니다.\n- `search_from_text`: 논문의 섹션내용을 나타내는 embedding과 질문의 embedding의 cosine similarity를 사용하여 내용을 가져 옵니다.\n\n언어모델이 어떤 함수를 사용할지 판단하며, 명시적으로 함수명을 언급하여 해당 함수를 사용하도록 지시 할 수도 있습니다.\n\n아래의 목차를 참고하여 문서와 대화 해 보세요.")
-  st.markdown("**Table of Contents:**")
-  with st.expander("Introduction"):
-    st.write("본 논문은 대화형 대규모 언어 모델(LLM)의 응용 분야를 확장하기 위해 프롬프트 패턴을 도입합니다.")
-  with st.expander("Comparing Software Patterns with Prompt Patterns"):
-    st.write("본 섹션에서는 소프트웨어 패턴과 프롬프트 패턴을 비교하여 프롬프트 엔지니어링을 위한 프레임워크를 제시합니다.\n\nSub-sections:\n- Overview of Software Patterns\n- Overview of Prompt Patterns\n- Evaluating Means for Defining a Prompt Pattern's Structure and Ideas\n- A Way Forward: Fundamental Contextual Statements")
-  with st.expander("A Catalog of Prompt Patterns for Conversational LLMs"):
-    st.write("본 섹션에서는 대화형 LLM 상호작용 및 출력 생성을 위한 소프트웨어 작업 자동화를 위한 프롬프트 패턴 카탈로그를 제시합니다.\n\nSub-sections:\n- Summary of the Prompt Pattern Catalog\n- The Meta Language Creation Pattern\n- The Output Automater Pattern\n- The Flipped Interaction Pattern\n- The Persona Pattern\n- The Question Refinement Pattern\n- The Alternative Approaches Pattern\n- The Cognitive Verifier Pattern\n- The Fact Check List Pattern\n- The Template Pattern\n- The Infinite Generation Pattern\n- The Visualization Generator Pattern\n- The Game Play Pattern\n- The Reflection Pattern\n- The Refusal Breaker Pattern\n- The Context Manager Pattern\n- The Recipe Pattern\n\nEach subsection, except the first, has subsubsections:\n- Intent and Context\n- Motivation\n- Structure and Key Ideas\n- Example Implementation\n- Consequences")
-  with st.expander("Related Work"):
-    st.write("본 섹션에서는 소프트웨어 패턴과 프롬프트 설계에 대한 기존 연구 및 LLM, 특히 ChatGPT의 성능 평가를 다룹니다.")
-  with st.expander("Concluding Remarks"):
-    st.write("본 논문은 ChatGPT와 같은 대규모 언어 모델(LLM)을 위한 프롬프트 패턴 카탈로그를 문서화하고 적용하는 프레임워크를 제시하며, 프롬프트 패턴 설계를 개선하여 대화형 LLM을 위한 새로운 기능을 창출하는 연구를 장려하고자 합니다.")
+  with st.container(border=True):
+    st.markdown("**Table of Contents:**")
+    with st.expander("Introduction"):
+      st.write("본 논문은 대화형 대규모 언어 모델(LLM)의 응용 분야를 확장하기 위해 프롬프트 패턴을 도입합니다.")
+    with st.expander("Comparing Software Patterns with Prompt Patterns"):
+      st.write("본 섹션에서는 소프트웨어 패턴과 프롬프트 패턴을 비교하여 프롬프트 엔지니어링을 위한 프레임워크를 제시합니다.\n\nSub-sections:\n- Overview of Software Patterns\n- Overview of Prompt Patterns\n- Evaluating Means for Defining a Prompt Pattern's Structure and Ideas\n- A Way Forward: Fundamental Contextual Statements")
+    with st.expander("A Catalog of Prompt Patterns for Conversational LLMs"):
+      st.write("본 섹션에서는 대화형 LLM 상호작용 및 출력 생성을 위한 소프트웨어 작업 자동화를 위한 프롬프트 패턴 카탈로그를 제시합니다.\n\nSub-sections:\n- Summary of the Prompt Pattern Catalog\n- The Meta Language Creation Pattern\n- The Output Automater Pattern\n- The Flipped Interaction Pattern\n- The Persona Pattern\n- The Question Refinement Pattern\n- The Alternative Approaches Pattern\n- The Cognitive Verifier Pattern\n- The Fact Check List Pattern\n- The Template Pattern\n- The Infinite Generation Pattern\n- The Visualization Generator Pattern\n- The Game Play Pattern\n- The Reflection Pattern\n- The Refusal Breaker Pattern\n- The Context Manager Pattern\n- The Recipe Pattern\n\nEach subsection, except the first, has subsubsections:\n- Intent and Context\n- Motivation\n- Structure and Key Ideas\n- Example Implementation\n- Consequences")
+    with st.expander("Related Work"):
+      st.write("본 섹션에서는 소프트웨어 패턴과 프롬프트 설계에 대한 기존 연구 및 LLM, 특히 ChatGPT의 성능 평가를 다룹니다.")
+    with st.expander("Concluding Remarks"):
+      st.write("본 논문은 ChatGPT와 같은 대규모 언어 모델(LLM)을 위한 프롬프트 패턴 카탈로그를 문서화하고 적용하는 프레임워크를 제시하며, 프롬프트 패턴 설계를 개선하여 대화형 LLM을 위한 새로운 기능을 창출하는 연구를 장려하고자 합니다.")
+
+# Memo
+if "memo" not in st.session_state:
+  st.session_state.memo = []
+
+with col1:
+  memo = st.container(border=True)
+  memo.subheader("Memo", divider='gray')
+  for m in st.session_state.memo:
+    memo.write(m)
+    memo.button("Remove", on_click=st.session_state.memo.remove, args=[m], key=f'_memo_{hash(m)}')
+    memo.divider()
 
 # Google API key
 if "api_key" not in st.session_state:
@@ -139,19 +152,25 @@ safety_settings={
   'danger':'block_none'
 }
 
-system_instruction=f"""You are a retriever engine.
-You can retrieve the contents of the paper titled 'A Prompt Pattern Catalog to Enhance Prompt Engineering with ChatGPT'.
+system_instruction = f"""You are a retrieval-augmented generative engine. 
+Your primary task is to retrieve the contents of the paper titled "A Prompt Pattern Catalog to Enhance Prompt Engineering with ChatGPT".
 
-Even if you are pretty sure, you, first, try to retrieve the paper's content.
-If you are failed to retrieve, then just say you cannot find; never use your prior knowledge.
-When you use the function `search_from_section_names`, first, you try fill all the three `[section, subsection, subsubsection]` names to get a chunk; but `subsection` or `subsubsection` can be empty string '' anyway.
-If you cannot determine which section or (sub)subsection should be chosen, use the function `search_from_text` which is using cosine similarity of the query and the document body text.
-If you think we need more chunks, then ask the user want to get more.
+**Retrieval Process:**
 
-You have to use Korean (한국어) if the user asks in Korean (한국어).
-Otherwise you must use English.
+1. **Attempt Retrieval:** Always try to retrieve the paper's content first, even if you are confident in your knowledge.
+2. **Retrieval Failure:** If you cannot find the paper, simply state that you are unable to retrieve it. **Do not** rely on your prior knowledge.
+3. **Structured Retrieval:** When using the `search_from_section_names` function, prioritize filling all three parameters `[section, subsection, subsubsection]` to retrieve a relevant chunk. However,  `subsection` or `subsubsection` can be empty strings (`''`) if necessary.
+4. **Cosine Similarity:** If you cannot determine the appropriate section or subsection, use the `search_from_text` function, which leverages cosine similarity between the query and the document body text. 
+5. **Additional Retrieval:** If you believe more chunks are needed, ask the user if they would like to retrieve additional information.
 
-Table of Contents (each depth means [section, subsection, subsubsection]):\n{toc}"""
+**Language Handling:**
+
+* Respond in Korean (한국어) if the user's query is in Korean.
+* Respond in English otherwise.
+
+**Table of Contents:**
+
+{toc}"""
 
 if "chat_session" in st.session_state:
   chat_session = st.session_state.chat_session
@@ -192,6 +211,8 @@ with col2:
       if text:=part.text:
         with messages.chat_message('human' if content.role == 'user' else 'ai'):
           st.write(text)
+          if content.role == 'model':
+            st.button("Memo", on_click=st.session_state.memo.append, args=[text], key=f'btn_{hash(text)}')
       if f_call_checkbox:
         if fc:=part.function_call:
           with messages.chat_message('ai'):
@@ -202,9 +223,12 @@ with col2:
             st.json(fr.response["result"])
       else:
         if fr:=part.function_response:
-          with messages.chat_message('retriever', avatar="📜"):
-            retriever_df = pd.read_json(StringIO(fr.response["result"]))
-            st.dataframe(retriever_df.loc[:, (retriever_df.columns != "text")])
+          if fr.name == "get_memo":
+            pass
+          else:
+            with messages.chat_message('retriever', avatar="📜"):
+              retriever_df = pd.read_json(StringIO(fr.response["result"]))
+              st.dataframe(retriever_df.loc[:, (retriever_df.columns != "text")])
 
   # chat input
   if prompt := st.chat_input("Ask me anything...", disabled=False if st.session_state.api_key else True):
