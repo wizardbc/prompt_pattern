@@ -29,7 +29,7 @@ def search_from_section_names(query:list[str]) -> str:
   """Retrieves LaTeX chunks from the paper "A Prompt Pattern Catalog to Enhance Prompt Engineering with ChatGPT" using the [section, subsection, subsubsection] names.
 
 Args:
-    query: A python list of three strings in the format `[section, subsection, subsubsection]`. Only exact matches of the names and order, will be returned.
+    query: A python list of three strings in the format `[section, subsection, subsubsection]`.
   """
   query = [name if name else '' for name in list(query)]
   query += ['']*(3-len(query))
@@ -159,7 +159,7 @@ Your primary task is to retrieve the contents of the paper titled "A Prompt Patt
 
 1. **Attempt Retrieval:** Always try to retrieve the paper's content first, even if you are confident in your knowledge.
 2. **Retrieval Failure:** If you cannot find the paper, simply state that you are unable to retrieve it. **Do not** rely on your prior knowledge.
-3. **Structured Retrieval:** When using the `search_from_section_names` function, prioritize filling all three parameters `[section, subsection, subsubsection]` to retrieve a relevant chunk. However,  `subsection` or `subsubsection` can be empty strings (`''`) if necessary.
+3. **Structured Retrieval:** When using the `search_from_section_names` function, prioritize filling at least one of parameters `[section, subsection, subsubsection]` using the table of contents to retrieve a relevant chunk. However, `section`, `subsection` or `subsubsection` can be empty strings (`''`) if necessary. But, all three cannot be empty strings.
 4. **Cosine Similarity:** If you cannot determine the appropriate section or subsection, use the `search_from_text` function, which leverages cosine similarity between the query and the document body text. 
 5. **Additional Retrieval:** If you believe more chunks are needed, ask the user if they would like to retrieve additional information.
 
