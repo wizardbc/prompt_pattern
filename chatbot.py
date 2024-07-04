@@ -5,6 +5,7 @@ from ast import literal_eval
 import google.generativeai as genai
 import streamlit as st
 
+### set_page
 st.set_page_config(
     page_title="Chat with Paper",
     page_icon=":books:",
@@ -17,14 +18,14 @@ st.set_page_config(
     }
 )
 
-# load data
+### load data
 df_csv = pd.read_csv("./data/2302.11382v1_embeddings.csv", index_col=0).fillna('')
 df_csv["embedding"] = df_csv.embedding.apply(literal_eval).apply(np.array)
 
 with open('./data/toc.txt', 'r') as f:
   toc = f.read()
 
-# search tools
+### search tools
 def search_from_section_names(query:list[str]) -> str:
   """Retrieves LaTeX chunks from the paper "A Prompt Pattern Catalog to Enhance Prompt Engineering with ChatGPT" using the [section, subsection, subsubsection] names.
 
@@ -64,40 +65,35 @@ Args:
   df["similarity"] = df.embedding.apply(lambda x: np.dot(x, query_embedding))
   return df[df.similarity >= s].sort_values("similarity", ascending=False).head(top_n)[['section', 'subsection', 'subsubsection', 'text', 'similarity']].to_json()
 
-# stream wrapper
-# gemini does not provide the automatic_function_calling and stream output simultaneously.
+### stream wrapper
+### gemini does not provide the automatic_function_calling and stream output simultaneously.
 # def gemini_stream_text(response):
 #   for chunk in response:
 #     if parts:=chunk.parts:
 #       if text:=parts[0].text:
 #         yield text
 
-# kwargs to markdown
+### kwargs to markdown
 def kwargs2mkdn(_indent:int=0, **kwargs):
   chunk = [' '*_indent + f"- `{k}`: {v}" for k, v in kwargs.items()]
   return '\n'.join(chunk)
 
-# Memo
-if "memo" not in st.session_state:
-  st.session_state.memo = []
-
-# Google API key
+### Google API key
 if "api_key" not in st.session_state:
   try:
     st.session_state.api_key = st.secrets["GOOGLE_API_KEY"]
   except:
     st.session_state.api_key = ''
-    st.warning("Your Google API Key is not provided in `.streamlit/secrets.toml`, but you can input one in the sidebar for temporary use.")
 
-# Sidebar for parameters
 with st.sidebar:
-  # Google API Key
   if st.session_state.api_key:
     genai.configure(api_key=st.session_state.api_key)
   else:
     st.session_state.api_key = st.text_input("Google API Key", type="password")
 
-  st.subheader("Visible")
+### Layout
+with st.sidebar:
+  st.subheader("Visibility")
   help_checkbox = st.checkbox("Help", value=False)
   toc_checkbox = st.checkbox("Table of Contents", value=True)
   memo_checkbox = st.checkbox("Memo", value=True)
@@ -105,17 +101,6 @@ with st.sidebar:
   f_call_checkbox = st.checkbox("Function Call", value=False)
   f_response_checkbox = st.checkbox("Function Response", value=True)
 
-  # ChatCompletion parameters
-  st.header("Gemini Parameters")
-  model_name = st.selectbox("model", ["gemini-1.5-flash", "gemini-1.5-pro"])
-  generation_config = {
-    "temperature": st.slider("temperature", min_value=0.0, max_value=1.0, value=1.0),
-    "top_p": st.slider("top_p", min_value=0.0, max_value=1.0, value=0.95),
-    "top_k": st.number_input("top_k", min_value=1, value=64),
-    "max_output_tokens": st.number_input("max_output_tokens", min_value=1, value=8192),
-  }
-
-# Layout
 tab_main, tab_memo = st.tabs(["Main", "Memo"])
 
 with tab_main:
@@ -123,6 +108,8 @@ with tab_main:
   st.caption(":books: \"A Prompt Pattern Catalog to Enhance Prompt Engineering\" with Gemini 1.5")
   st.write("https://arxiv.org/abs/2302.11382")
   st.divider()
+  if not st.session_state.api_key:
+    st.warning("Your Google API Key is not provided in `.streamlit/secrets.toml`, but you can input one in the sidebar for temporary use.", icon="⚠️")
 
   if help_checkbox or toc_checkbox or memo_checkbox:
     col_l, col_r = st.columns(2, vertical_alignment='bottom')
@@ -131,13 +118,17 @@ with tab_main:
   else:
     messages = st.container()
 
+# memo
+if "memo" not in st.session_state:
+  st.session_state.memo = []
+
 with tab_memo:
   st.header("Memo", divider=True)
   for m in st.session_state.memo:
     st.write(m)
     st.divider()
 
-# Help and Memo in col_r
+# help, toc, memo in col_r
 if help_checkbox:
   with col_r:
     with st.container(border=True):
@@ -166,6 +157,17 @@ if memo_checkbox:
     memo.button("Remove", on_click=st.session_state.memo.remove, args=[m], key=f'_memo_{i}')
     memo.divider()
 
+### gemini parameters
+with st.sidebar:
+  st.header("Gemini Parameters")
+  model_name = st.selectbox("model", ["gemini-1.5-flash", "gemini-1.5-pro"])
+  generation_config = {
+    "temperature": st.slider("temperature", min_value=0.0, max_value=1.0, value=1.0),
+    "top_p": st.slider("top_p", min_value=0.0, max_value=1.0, value=0.95),
+    "top_k": st.number_input("top_k", min_value=1, value=64),
+    "max_output_tokens": st.number_input("max_output_tokens", min_value=1, value=8192),
+  }
+
 safety_settings={
   'harassment':'block_none',
   'hate':'block_none',
@@ -193,6 +195,7 @@ Your primary task is to retrieve the contents of the paper titled "A Prompt Patt
 
 {toc}"""
 
+### gemini
 if "chat_session" in st.session_state:
   chat_session = st.session_state.chat_session
 else:
@@ -206,8 +209,8 @@ else:
   chat_session = model.start_chat(enable_automatic_function_calling=True)
   st.session_state.chat_session = chat_session
 
+# chat controls
 with st.sidebar:
-  # chat controls
   st.header("Chat Control")
   btn_col1, btn_col2 = st.columns(2)
   with btn_col1:
@@ -243,7 +246,6 @@ for i, content in enumerate(st.session_state.chat_session.history):
         else:
           st.write(f"Function Response\n- name: {fr.name}\n- response\n  - `result`")
           st.json(fr.response["result"])
-
 
 # chat input
 if prompt := st.chat_input("Ask me anything...", disabled=False if st.session_state.api_key else True):
