@@ -11,6 +11,7 @@ Put your Google API Key in .streamlit/secrets.toml or provide it in the sidebar 
 ```config
 GOOGLE_API_KEY = "YOUR_API_KEY"
 ```
+You can obtain your Google API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
 
 Run streamlit app.
 ```bash
