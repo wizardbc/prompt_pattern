@@ -186,13 +186,14 @@ if toc_checkbox:
       with st.expander("Concluding Remarks"):
         st.write("본 논문은 ChatGPT와 같은 대규모 언어 모델(LLM)을 위한 프롬프트 패턴 카탈로그를 문서화하고 적용하는 프레임워크를 제시하며, 프롬프트 패턴 설계를 개선하여 대화형 LLM을 위한 새로운 기능을 창출하는 연구를 장려하고자 합니다.")
 if memo_checkbox:
-  with col_r:
-    memo = st.container(border=True)
-  memo.subheader("Memo", divider=True)
-  for i, m in enumerate(st.session_state.memo):
-    memo.write(m)
-    memo.button("Remove", on_click=st.session_state.memo.remove, args=[m], key=f'_memo_{i}')
-    memo.divider()
+  with col_r, st.container(border=True):
+    st.subheader("Memo", divider=True)
+    len_memo_m_1 = len(st.session_state.memo) - 1
+    for i, m in enumerate(st.session_state.memo):
+      st.write(m)
+      st.button("Remove", on_click=st.session_state.memo.remove, args=[m], key=f'_memo_{i}')
+      if i < len_memo_m_1:
+        st.divider()
 
 ### gemini parameters
 with st.sidebar:
@@ -228,6 +229,7 @@ chat_session = model.start_chat(
   enable_automatic_function_calling=False
 )
 
+### chat controls
 def rewind():
   if len(chat_session.history) >= 2:
     chat_session.rewind()
@@ -241,7 +243,6 @@ def clear():
   chat_session.history.clear()
   st.session_state.history = chat_session.history
 
-# chat controls
 with st.sidebar:
   st.header("Chat Control")
   btn_col1, btn_col2 = st.columns(2)
@@ -250,7 +251,7 @@ with st.sidebar:
   with btn_col2:
     st.button("Clear", on_click=clear, use_container_width=True)
 
-# display messages in history
+### display messages in history
 for i, content in enumerate(chat_session.history):
   for part in content.parts:
     if text:=part.text:
@@ -273,7 +274,7 @@ for i, content in enumerate(chat_session.history):
           st.write(f"Function Response\n- name: {fr.name}\n- response\n  - `result`")
           st.json(fr.response["result"])
 
-# chat input
+### chat input
 if prompt := st.chat_input("Ask me anything...", disabled=False if st.session_state.api_key else True):
   with messages.chat_message('human'):
     st.write(prompt)
