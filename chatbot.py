@@ -229,14 +229,17 @@ chat_session = model.start_chat(
 )
 
 def rewind():
-  if len(st.session_state.history) >= 2:
-    st.session_state.history.pop()
-    st.session_state.history.pop()
-  if len(st.session_state.history) >= 2:
-    part = st.session_state.history[-1].parts[0]
+  if len(chat_session.history) >= 2:
+    chat_session.rewind()
+  if len(chat_session.history) >= 2:
+    part = chat_session.history[-1].parts[0]
     if part.function_call:
-      st.session_state.history.pop()
-      st.session_state.history.pop()
+      chat_session.rewind()
+  st.session_state.history = chat_session.history
+
+def clear():
+  chat_session.history.clear()
+  st.session_state.history = chat_session.history
 
 # chat controls
 with st.sidebar:
@@ -245,7 +248,7 @@ with st.sidebar:
   with btn_col1:
     st.button("Rewind", on_click=rewind, use_container_width=True, type='primary')
   with btn_col2:
-    st.button("Clear", on_click=st.session_state.history.clear, use_container_width=True)
+    st.button("Clear", on_click=clear, use_container_width=True)
 
 # display messages in history
 for i, content in enumerate(chat_session.history):
