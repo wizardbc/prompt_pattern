@@ -65,18 +65,18 @@ Args:
   df["similarity"] = df.embedding.apply(lambda x: np.dot(x, query_embedding))
   return df[df.similarity >= s].sort_values("similarity", ascending=False).head(top_n)[['section', 'subsection', 'subsubsection', 'text', 'similarity']].to_json()
 
-### stream wrapper
-### gemini does not provide the automatic_function_calling and stream output simultaneously.
-# def gemini_stream_text(response):
-#   for chunk in response:
-#     if parts:=chunk.parts:
-#       if text:=parts[0].text:
-#         yield text
+tools = {
+  'search_from_section_names': search_from_section_names,
+  'search_from_text': search_from_text,
+}
 
-### kwargs to markdown
-def kwargs2mkdn(_indent:int=0, **kwargs):
-  chunk = [' '*_indent + f"- `{k}`: {v}" for k, v in kwargs.items()]
-  return '\n'.join(chunk)
+### stream wrapper
+### gemini does not provide the `automatic_function_calling` and stream output simultaneously.
+def gemini_stream_text(response):
+  for chunk in response:
+    if parts:=chunk.parts:
+      if text:=parts[0].text:
+        yield text
 
 ### Google API key
 if "api_key" not in st.session_state:
@@ -97,11 +97,10 @@ with st.sidebar:
   help_checkbox = st.checkbox("Help", value=False)
   toc_checkbox = st.checkbox("Table of Contents", value=True)
   memo_checkbox = st.checkbox("Memo", value=True)
-  system_checkbox = st.checkbox("System Prompt", value=False)
   f_call_checkbox = st.checkbox("Function Call", value=False)
-  f_response_checkbox = st.checkbox("Function Response", value=True)
+  f_response_checkbox = st.checkbox("Function Response", value=False)
 
-tab_main, tab_memo = st.tabs(["Main", "Memo"])
+tab_main, tab_memo, tab_system = st.tabs(["Main", "Memo", "System Instruction"])
 
 with tab_main:
   st.title("💬 Chat with Paper")
@@ -127,6 +126,30 @@ with tab_memo:
   for m in st.session_state.memo:
     st.write(m)
     st.divider()
+
+_system_instruction = f"""You are a retrieval-augmented generative engine. 
+Your primary task is to retrieve the contents of the paper titled "A Prompt Pattern Catalog to Enhance Prompt Engineering with ChatGPT".
+
+**Retrieval Process:**
+
+1. **Attempt Retrieval:** Always try to retrieve the paper's content first, even if you are confident in your knowledge.
+2. **Retrieval Failure:** If you cannot find the paper, simply state that you are unable to retrieve it. **Do not** rely on your prior knowledge.
+3. **Structured Retrieval:** When using the `search_from_section_names` function, prioritize filling at least one of parameters `[section, subsection, subsubsection]` using the table of contents to retrieve a relevant chunk. However, `section`, `subsection` or `subsubsection` can be empty strings (`''`) if necessary. But, all three cannot be empty strings.
+4. **Cosine Similarity:** If you cannot determine the appropriate section or subsection, use the `search_from_text` function, which leverages cosine similarity between the query and the document body text. 
+5. **Additional Retrieval:** If you believe more chunks are needed, ask the user if they would like to retrieve additional information.
+
+**Language Handling:**
+
+* Respond in Korean (한국어) if the user's query is in Korean.
+* Respond in English otherwise.
+
+**Table of Contents:**
+
+{toc}"""
+
+# system prompt
+with tab_system:
+  system_instruction = st.text_area("system instruction", _system_instruction, height=512)
 
 # help, toc, memo in col_r
 if help_checkbox:
@@ -175,45 +198,31 @@ safety_settings={
   'danger':'block_none'
 }
 
-system_instruction = f"""You are a retrieval-augmented generative engine. 
-Your primary task is to retrieve the contents of the paper titled "A Prompt Pattern Catalog to Enhance Prompt Engineering with ChatGPT".
-
-**Retrieval Process:**
-
-1. **Attempt Retrieval:** Always try to retrieve the paper's content first, even if you are confident in your knowledge.
-2. **Retrieval Failure:** If you cannot find the paper, simply state that you are unable to retrieve it. **Do not** rely on your prior knowledge.
-3. **Structured Retrieval:** When using the `search_from_section_names` function, prioritize filling at least one of parameters `[section, subsection, subsubsection]` using the table of contents to retrieve a relevant chunk. However, `section`, `subsection` or `subsubsection` can be empty strings (`''`) if necessary. But, all three cannot be empty strings.
-4. **Cosine Similarity:** If you cannot determine the appropriate section or subsection, use the `search_from_text` function, which leverages cosine similarity between the query and the document body text. 
-5. **Additional Retrieval:** If you believe more chunks are needed, ask the user if they would like to retrieve additional information.
-
-**Language Handling:**
-
-* Respond in Korean (한국어) if the user's query is in Korean.
-* Respond in English otherwise.
-
-**Table of Contents:**
-
-{toc}"""
-
 ### gemini
-if "chat_session" in st.session_state:
-  chat_session = st.session_state.chat_session
-else:
-  model = genai.GenerativeModel(
-    model_name=model_name,
-    generation_config=generation_config,
-    safety_settings=safety_settings,
-    system_instruction=system_instruction,
-    tools=[search_from_section_names, search_from_text],
-  )
-  chat_session = model.start_chat(enable_automatic_function_calling=True)
-  st.session_state.chat_session = chat_session
+if "history" not in st.session_state:
+  st.session_state.history = []
+
+model = genai.GenerativeModel(
+  model_name=model_name,
+  generation_config=generation_config,
+  safety_settings=safety_settings,
+  system_instruction=system_instruction,
+  tools=tools.values(),
+)
+chat_session = model.start_chat(
+  history=st.session_state.history,
+  enable_automatic_function_calling=False
+)
 
 def rewind():
-  chat_session.rewind()
-  part = chat_session.history[-1].parts[0]
-  if part.function_call:
-    chat_session.rewind()
+  if len(st.session_state.history) >= 2:
+    st.session_state.history.pop()
+    st.session_state.history.pop()
+  if len(st.session_state.history) >= 2:
+    part = st.session_state.history[-1].parts[0]
+    if part.function_call:
+      st.session_state.history.pop()
+      st.session_state.history.pop()
 
 # chat controls
 with st.sidebar:
@@ -222,15 +231,10 @@ with st.sidebar:
   with btn_col1:
     st.button("Rewind", on_click=rewind, use_container_width=True, type='primary')
   with btn_col2:
-    st.button("Clear", on_click=chat_session._history.clear, use_container_width=True)
-
-# display system instruction
-if system_checkbox:
-  with messages.chat_message("system"):
-    st.write(system_instruction)
+    st.button("Clear", on_click=st.session_state.history.clear, use_container_width=True)
 
 # display messages in history
-for i, content in enumerate(st.session_state.chat_session.history):
+for i, content in enumerate(chat_session.history):
   for part in content.parts:
     if text:=part.text:
       with messages.chat_message('human' if content.role == 'user' else 'ai'):
@@ -240,7 +244,7 @@ for i, content in enumerate(st.session_state.chat_session.history):
             st.button("Memo", on_click=st.session_state.memo.append, args=[text], key=f'_btn_{i}')
     if f_call_checkbox and (fc:=part.function_call):
       with messages.chat_message('ai'):
-        st.write(f"Function Call\n- name: {fc.name}\n- args\n{kwargs2mkdn(4, **fc.args)}")
+        st.write(f"**Function Call**:\n\n```python\n{fc.name}(\n{',\n'.join([f'  {k}=\"{v}\"' if isinstance(v, str) else f'  {k}={v}' for k,v in fc.args.items()])}\n)\n```")
     if f_response_checkbox and (fr:=part.function_response):
       with messages.chat_message('retriever', avatar="📜"):
         if "search_" in fr.name:
@@ -248,7 +252,7 @@ for i, content in enumerate(st.session_state.chat_session.history):
           st.dataframe(retriever_df.loc[:, (retriever_df.columns != "text")])
           with st.expander("Content"):
             for text in retriever_df.text:
-              st.write(text)
+              st.text(text)
         else:
           st.write(f"Function Response\n- name: {fr.name}\n- response\n  - `result`")
           st.json(fr.response["result"])
@@ -259,7 +263,25 @@ if prompt := st.chat_input("Ask me anything...", disabled=False if st.session_st
     st.write(prompt)
   with messages.chat_message('ai'):
     with st.spinner("Generating..."):
-      # response = chat_session.send_message(prompt, stream=True)
-      response = chat_session.send_message(prompt)
-    # st.write_stream(gemini_stream_text(response))
-  st.rerun()
+      response = chat_session.send_message(prompt, stream=True)
+      text = st.write_stream(gemini_stream_text(response))
+      st.session_state.history = chat_session.history
+      # function response
+      fr_parts = []
+      for part in response.parts:
+        if fc := part.function_call:
+          st.toast(f"**Function Calling**\n`{fc.name}`")
+          fr_parts.append(
+            genai.protos.Part(
+              function_response=genai.protos.FunctionResponse(
+                name=fc.name,
+                response={"result": tools[fc.name](**fc.args)}))
+          )
+      if fr_parts:
+        response = chat_session.send_message(fr_parts)
+        text = st.write_stream(gemini_stream_text(response))
+        st.session_state.history = chat_session.history
+        if f_call_checkbox or f_response_checkbox:
+          st.rerun()
+    if memo_checkbox:
+      st.button("Memo", on_click=st.session_state.memo.append, args=[text], key=f'_btn_last')
