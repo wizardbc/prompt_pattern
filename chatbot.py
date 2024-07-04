@@ -105,10 +105,12 @@ with st.sidebar:
 
 ### Layout
 with st.sidebar:
-  st.subheader("Visibility")
+  st.header("Visibility")
+  st.caption("Panel on Right")
   help_checkbox = st.checkbox("Help", value=False)
   toc_checkbox = st.checkbox("Table of Contents", value=True)
   memo_checkbox = st.checkbox("Memo", value=True)
+  st.caption("Messages")
   f_call_checkbox = st.checkbox("Function Call", value=False)
   f_response_checkbox = st.checkbox("Function Response", value=False)
 
@@ -123,7 +125,7 @@ with tab_main:
     st.warning("Your Google API Key is not provided in `.streamlit/secrets.toml`, but you can input one in the sidebar for temporary use.", icon="⚠️")
 
   if help_checkbox or toc_checkbox or memo_checkbox:
-    col_l, col_r = st.columns(2, vertical_alignment='bottom')
+    col_l, col_r = st.columns([6,4], vertical_alignment='bottom')
     with col_l:
       messages = st.container()
   else:
@@ -252,8 +254,7 @@ for i, content in enumerate(chat_session.history):
       with messages.chat_message('human' if content.role == 'user' else 'ai'):
         st.write(text)
         if content.role == 'model':
-          if memo_checkbox:
-            st.button("Memo", on_click=st.session_state.memo.append, args=[text], key=f'_btn_{i}')
+          st.button("Memo", on_click=st.session_state.memo.append, args=[text], key=f'_btn_{i}')
     if f_call_checkbox and (fc:=part.function_call):
       with messages.chat_message('ai'):
         st.write(f"**Function Call**:\n\n{ftn_codeblock(fc.name, fc.args)}")
@@ -295,5 +296,4 @@ if prompt := st.chat_input("Ask me anything...", disabled=False if st.session_st
         st.session_state.history = chat_session.history
         if f_call_checkbox or f_response_checkbox:
           st.rerun()
-    if memo_checkbox:
-      st.button("Memo", on_click=st.session_state.memo.append, args=[text], key=f'_btn_last')
+    st.button("Memo", on_click=st.session_state.memo.append, args=[text], key=f'_btn_last')
