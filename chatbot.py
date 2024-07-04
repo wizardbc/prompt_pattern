@@ -70,6 +70,18 @@ tools = {
   'search_from_text': search_from_text,
 }
 
+def ftn_codeblock(fn, args):
+  res = "```python\n"
+  res += str(fn)
+  res += '(\n'
+  for k,v in args.items():
+    if isinstance(v, str):
+      res += f'  {k}="{v}"\n'
+    else:
+      res += f'  {k}={v}\n'
+  res += ')\n```'
+  return res
+
 ### stream wrapper
 ### gemini does not provide the `automatic_function_calling` and stream output simultaneously.
 def gemini_stream_text(response):
@@ -244,7 +256,7 @@ for i, content in enumerate(chat_session.history):
             st.button("Memo", on_click=st.session_state.memo.append, args=[text], key=f'_btn_{i}')
     if f_call_checkbox and (fc:=part.function_call):
       with messages.chat_message('ai'):
-        st.write(f"**Function Call**:\n\n```python\n{fc.name}(\n{',\n'.join([f'  {k}=\"{v}\"' if isinstance(v, str) else f'  {k}={v}' for k,v in fc.args.items()])}\n)\n```")
+        st.write(f"**Function Call**:\n\n{ftn_codeblock(fc.name, fc.args)}")
     if f_response_checkbox and (fr:=part.function_response):
       with messages.chat_message('retriever', avatar="📜"):
         if "search_" in fr.name:
