@@ -161,9 +161,9 @@ if memo_checkbox:
   with col_r:
     memo = st.container(border=True)
   memo.subheader("Memo", divider=True)
-  for m in st.session_state.memo:
+  for i, m in enumerate(st.session_state.memo):
     memo.write(m)
-    memo.button("Remove", on_click=st.session_state.memo.remove, args=[m], key=f'_memo_{hash(m)}')
+    memo.button("Remove", on_click=st.session_state.memo.remove, args=[m], key=f'_memo_{i}')
     memo.divider()
 
 safety_settings={
@@ -221,14 +221,14 @@ if system_checkbox:
     st.write(system_instruction)
 
 # display messages in history
-for content in st.session_state.chat_session.history:
+for i, content in enumerate(st.session_state.chat_session.history):
   for part in content.parts:
     if text:=part.text:
       with messages.chat_message('human' if content.role == 'user' else 'ai'):
         st.write(text)
         if content.role == 'model':
           if memo_checkbox:
-            st.button("Memo", on_click=st.session_state.memo.append, args=[text], key=f'_btn_{hash(text)}')
+            st.button("Memo", on_click=st.session_state.memo.append, args=[text], key=f'_btn_{i}')
     if f_call_checkbox and (fc:=part.function_call):
       with messages.chat_message('ai'):
         st.write(f"Function Call\n- name: {fc.name}\n- args\n{kwargs2mkdn(4, **fc.args)}")
