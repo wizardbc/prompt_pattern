@@ -209,12 +209,18 @@ else:
   chat_session = model.start_chat(enable_automatic_function_calling=True)
   st.session_state.chat_session = chat_session
 
+def rewind():
+  chat_session.rewind()
+  part = chat_session.history[-1].parts[0]
+  if part.function_call:
+    chat_session.rewind()
+
 # chat controls
 with st.sidebar:
   st.header("Chat Control")
   btn_col1, btn_col2 = st.columns(2)
   with btn_col1:
-    st.button("Rewind", on_click=chat_session.rewind, use_container_width=True, type='primary')
+    st.button("Rewind", on_click=rewind, use_container_width=True, type='primary')
   with btn_col2:
     st.button("Clear", on_click=chat_session._history.clear, use_container_width=True)
 
