@@ -90,6 +90,14 @@ def gemini_stream_text(response):
       if text:=parts[0].text:
         yield text
 
+@st.experimental_dialog("🚨 Error")
+def error(err, msg=''):
+  st.write(f"We've got error\n```python\n{err}\n```")
+  if msg:
+    st.text(msg)
+  if st.button("Ok"):
+    st.rerun()
+
 ### Google API key
 if "api_key" not in st.session_state:
   try:
@@ -280,9 +288,14 @@ if prompt := st.chat_input("Ask me anything...", disabled=False if st.session_st
     st.write(prompt)
   with messages.chat_message('ai'):
     with st.spinner("Generating..."):
-      response = chat_session.send_message(prompt, stream=True)
-      text = st.write_stream(gemini_stream_text(response))
-      st.session_state.history = chat_session.history
+      try:
+        response = chat_session.send_message(prompt, stream=True)
+        text = st.write_stream(gemini_stream_text(response))
+        st.session_state.history = chat_session.history
+      except genai.types.StopCandidateException as e:
+        error(e, "구글의 contents filter 에 걸렸을 수 있습니다.\n저작권이 있는 문서를 생성하려는 경우 일 가능성이 있습니다.")
+      except genai.types.BrokenResponseError as e:
+        error(e, "구글의 contents filter 에 걸렸을 수 있습니다.\n저작권이 있는 문서를 생성하려는 경우 일 가능성이 있습니다.")
       # function response
       fr_parts = []
       for part in response.parts:
@@ -295,9 +308,16 @@ if prompt := st.chat_input("Ask me anything...", disabled=False if st.session_st
                 response={"result": tools[fc.name](**fc.args)}))
           )
       if fr_parts:
-        response = chat_session.send_message(fr_parts)
-        text = st.write_stream(gemini_stream_text(response))
-        st.session_state.history = chat_session.history
-        if f_call_checkbox or f_response_checkbox:
-          st.rerun()
+        try:
+          response = chat_session.send_message(fr_parts)
+          text = st.write_stream(gemini_stream_text(response))
+          st.session_state.history = chat_session.history
+          if f_call_checkbox or f_response_checkbox:
+            st.rerun()
+        except genai.types.StopCandidateException as e:
+          st.session_state.history = st.session_state.history[:-2]
+          error(e, "구글의 contents filter 에 걸렸을 수 있습니다.\n저작권이 있는 문서를 생성하려는 경우 일 가능성이 있습니다.")
+        except genai.types.BrokenResponseError as e:
+          st.session_state.history = st.session_state.history[:-2]
+          error(e, "구글의 contents filter 에 걸렸을 수 있습니다.\n저작권이 있는 문서를 생성하려는 경우 일 가능성이 있습니다.")
     st.button("Memo", on_click=st.session_state.memo.append, args=[text], key=f'_btn_last')
